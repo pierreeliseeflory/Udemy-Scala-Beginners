@@ -33,11 +33,11 @@ abstract class MyList[+A] {
   override def toString: String = "[" + printElements + "]"
 }
 
-object Empty extends MyList[AnyRef] {
+object Empty extends MyList[Nothing] {
   def head = throw new NoSuchElementException
   def tail = throw new NoSuchElementException
   def isEmpty: Boolean = true
-  def add[B >: AnyRef](element: B): Cons[B] = new Cons(Empty, element)
+  def add[B >: Nothing](element: B): Cons[B] = new Cons(Empty, element)
   def printElements: String = ""
 }
 
