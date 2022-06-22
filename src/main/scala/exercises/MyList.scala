@@ -16,6 +16,26 @@
 
 package exercises
 
+trait MyPredicate[-T] {
+  def test(element: T): Boolean
+}
+
+trait MyTransformer[-A, B] {
+  def transform(element: A): B
+}
+
+class EvenPredicate extends MyPredicate[Int] {
+  override def test(element: Int) = (element % 2) == 0
+}
+
+class StringToIntTransformer extends MyTransformer[String, Int] {
+  override def transform(element: String) = element.toInt
+}
+
+class ConsecutiveTransformer extends MyTransformer[Int, MyList[Int]] {
+  override def transform(element: Int) = Empty.add(element).add(element + 1)
+}
+
 abstract class MyList[+A] {
   /*
         head = first element of the list
@@ -31,17 +51,33 @@ abstract class MyList[+A] {
   def printElements: String
   // following override is mandatory because toString is a class member of AnyRef
   override def toString: String = "[" + printElements + "]"
+
+  def map[B](transformer: MyTransformer[A, B]): MyList[B]
+  def filter(predicate: MyPredicate[A]): MyList[A]
+  def concat[B >: A](additionalList: MyList[B]): MyList[B]
+  def ||[B >: A](additionalList: MyList[B]): MyList[B]
+  def flatMap[B](transformer: MyTransformer[A, MyList[B]]): MyList[B]
 }
 
-object Empty extends MyList[Nothing] {
+case object Empty extends MyList[Nothing] {
   def head = throw new NoSuchElementException
   def tail = throw new NoSuchElementException
   def isEmpty: Boolean = true
   def add[B >: Nothing](element: B): Cons[B] = new Cons(Empty, element)
   def printElements: String = ""
+
+  def map[B](transformer: MyTransformer[Nothing, B]) = Empty
+  def filter(predicate: MyPredicate[Nothing]) = Empty
+  def concat[B >: Nothing](
+      additionalList: MyList[B]
+  ): MyList[B] = additionalList
+  def ||[B >: Nothing](additionalList: MyList[B]): MyList[B] =
+    concat(additionalList)
+  def flatMap[B](transformer: MyTransformer[Nothing, MyList[B]]) =
+    Empty
 }
 
-class Cons[A](t: MyList[A], h: A) extends MyList[A] {
+case class Cons[A](t: MyList[A], h: A) extends MyList[A] {
   def head = h
   def tail = t
   def isEmpty: Boolean = false
@@ -49,6 +85,20 @@ class Cons[A](t: MyList[A], h: A) extends MyList[A] {
   def printElements: String =
     if (t.isEmpty) s"$h"
     else s"${t.printElements} $h"
+
+  def map[B](transformer: MyTransformer[A, B]): MyList[B] =
+    t.map(transformer).add(transformer.transform(h))
+  def filter(predicate: MyPredicate[A]): MyList[A] = if (predicate.test(head))
+    tail.filter(predicate).add(head)
+  else tail.filter(predicate)
+
+  def concat[B >: A](additionalList: MyList[B]): MyList[B] =
+    if (additionalList.isEmpty) this
+    else this.concat(additionalList.tail).add(additionalList.head)
+  def ||[B >: A](additionalList: MyList[B]): MyList[B] =
+    concat(additionalList)
+  def flatMap[B](transformer: MyTransformer[A, MyList[B]]): MyList[B] =
+    t.flatMap(transformer).concat(transformer.transform(h))
 }
 
 object ListTest extends App {
@@ -58,6 +108,23 @@ object ListTest extends App {
 
   println(list.toString)
 
-  val list2 = Empty.add(1).add(2).add(3)
+  val list2 = Empty.add("1").add("2").add("3").add("4")
   println(list2.toString)
+
+  println(list2.map[Int](new StringToIntTransformer))
+  /*
+  With an anonymous class
+    println(list2.map[Int](new MyTransformer[Int, String]) {
+      override def test(element: Int) = (element % 2) == 0
+    })
+   */
+  println(list2.map[Int](new StringToIntTransformer).filter(new EvenPredicate))
+
+  println(list.flatMap[Int](new ConsecutiveTransformer))
+
+  println((list || list2.map[Int](new StringToIntTransformer)).toString)
+
+  val cloneOfList = new Cons(new Cons(new Cons(Empty, 1), 2), 3)
+  // enabled by the case class
+  println(list == cloneOfList)
 }
