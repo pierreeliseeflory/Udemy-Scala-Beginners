@@ -28,25 +28,32 @@ package exercises
 //   override def test(element: Int) = (element % 2) == 0
 // }
 
-val EvenPredicate = new Function1[Int, Boolean] {
-  override def apply(element: Int) = (element % 2) == 0
-}
+// val EvenPredicate = new Function1[Int, Boolean] {
+//   override def apply(element: Int) = (element % 2) == 0
+// }
+
+val EvenPredicate: Int => Boolean = _ % 2 == 0
 
 // class StringToIntTransformer extends MyTransformer[String, Int] {
 //   override def transform(element: String) = element.toInt
 // }
 
-val StringToIntTransformer = new Function1[String, Int] {
-  override def apply(element: String) = element.toInt
-}
+// val StringToIntTransformer = new Function1[String, Int] {
+//   override def apply(element: String) = element.toInt
+// }
+
+val StringToIntTransformer: String => Int = _.toInt
 
 // class ConsecutiveTransformer extends MyTransformer[Int, MyList[Int]] {
 //   override def transform(element: Int) = Empty.add(element).add(element + 1)
 // }
 
-val ConsecutiveTransformer = new Function1[Int, MyList[Int]] {
-  override def apply(element: Int) = Empty.add(element).add(element + 1)
-}
+// val ConsecutiveTransformer = new Function1[Int, MyList[Int]] {
+//   override def apply(element: Int) = Empty.add(element).add(element + 1)
+// }
+
+val ConsecutiveTransformer: Int => MyList[Int] = (x: Int) =>
+  Empty.add(x).add(x + 1)
 
 abstract class MyList[+A] {
   /*
