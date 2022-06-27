@@ -133,18 +133,18 @@ object ListTest extends App {
   val list2 = Empty.add("1").add("2").add("3").add("4")
   println(list2.toString)
 
-  println(list2.map[Int](StringToIntTransformer))
+  println(list2.map(elem => elem.toInt))
   /*
   With an anonymous class
     println(list2.map[Int](new MyTransformer[Int, String]) {
       override def test(element: Int) = (element % 2) == 0
     })
    */
-  println(list2.map[Int](StringToIntTransformer).filter(EvenPredicate))
+  println(list2.map(elem => elem.toInt).filter(elem => elem % 2 == 0))
 
-  println(list.flatMap[Int](ConsecutiveTransformer))
+  println(list.flatMap(x => Empty.add(x).add(x + 1)))
 
-  println((list || list2.map[Int](StringToIntTransformer)).toString)
+  println((list || list2.map(elem => elem.toInt)).toString)
 
   val cloneOfList = new Cons(new Cons(new Cons(Empty, 1), 2), 3)
   // enabled by the case class
