@@ -60,4 +60,26 @@ object HOFsCurries extends App {
       3. compose(f, g) => x => f(g(x))
          andThen(f, g) => x => g(f(x))
    */
+
+  // 2.
+  def toCurry(f: (Int, Int) => Int): (Int => Int => Int) =
+    // (b: Int) => (a: Int) => f(a, b)
+    x => y => f(x, y)
+
+  def fromCurry(f: (Int => Int => Int)): ((Int, Int) => Int) =
+    // (a: Int, b: Int) => f(a)(b)
+    (x, y) => f(x)(y)
+
+  // 3.
+  def compose(f: Int => Int, g: Int => Int): Int => Int =
+    x => f(g(x))
+
+  def composeGeneric[A, B, C](f: A => B, g: C => A): C => B =
+    x => f(g(x))
+
+  def andThen(f: Int => Int, g: Int => Int): Int => Int =
+    x => g(f(x))
+
+  def andThenGeneric[A, B, C](f: A => B, g: B => C): A => C =
+    x => g(f(x))
 }
